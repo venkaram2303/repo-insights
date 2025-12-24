@@ -184,6 +184,43 @@ Tests focus on aggregation logic and provider abstraction correctness.
 
 ---
 
+## Container Image (Jib)
+
+Repo Insights supports container image builds using **Jib**, without requiring a Dockerfile.
+
+### Build & Push Image
+
+The container image can be built and pushed directly using Maven:
+
+    mvn clean compile jib:build
+
+By default, the image is pushed to Docker Hub with:
+- a **timestamp-based tag** (yyMMdd.HHmm)
+- the `latest` tag
+
+Example image names:
+
+    docker.io/venkaram2303/repo-insights:250124.2145
+    docker.io/venkaram2303/repo-insights:latest
+
+### Base Image
+
+The service uses the following base image:
+
+    eclipse-temurin:17-jre
+
+### Running the Image
+
+    docker run -p 8080:8080 \
+      -e REPO_TYPE=github \
+      -e REPO_URL=https://api.github.com \
+      -e REPO_ACCESS_TOKEN=<token> \
+      -e REPO_KEY=<org-or-project> \
+      venkaram2303/repo-insights:latest
+
+No Dockerfile is required. Container builds are fully managed via Jib configuration.
+
+
 ## Contributing
 
 Contributions are welcome.
