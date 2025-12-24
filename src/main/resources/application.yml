@@ -1,0 +1,20 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: repo-insights
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+repo-insights:
+  scm:
+    type: ${REPO_SCM_TYPE:github} # github | bitbucket
+    base-url: ${REPO_URL:"https://api.github.com"}
+    accessToken: ${REPO_ACCESS_TOKEN:}
+    key: ${REPO_KEY:}
+
