@@ -1,0 +1,9 @@
+apiVersion: v2
+name: repo-insights
+description: Helm chart for Repo Insights Spring Boot service
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+sources:
+  - https://github.com/venkaram2303/repo-insights.git

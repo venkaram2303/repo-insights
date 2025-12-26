@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "helm.fullname" . }}
+  labels:
+    app: {{ template "helm.fullname" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    do-not-scale-down: "true"
+spec:
+  replicas: {{ .Values.replicaCount | default 1 }}
+  selector:
+    matchLabels:
+      app: {{ template "helm.fullname" . }}
+      release: {{ .Release.Name }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      annotations:
+        secret.reloader.stakater.com/reload: "repo-insights-{{ .Release.Name }}"
+        release-time: "{{ now | quote }}"
+      labels:
+        app: {{ template "helm.fullname" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: {{ template "helm.fullname" . }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ default "IfNotPresent" .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: {{ default "default" .Values.app.env.SPRING_PROFILES_ACTIVE | quote }}
+            - name: REPO_SCM_TYPE
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}-configmap
+                  key: REPO_SCM_TYPE
+            - name: REPO_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Chart.Name }}-configmap
+                  key: REPO_URL
+            - name: REPO_ACCESS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Chart.Name }}-secrets
+                  key: REPO_ACCESS_TOKEN
+            - name: REPO_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Chart.Name }}-secrets
+                  key: REPO_KEY
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: 15
+            periodSeconds: 5
+      restartPolicy: Always
